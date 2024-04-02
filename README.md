@@ -80,7 +80,7 @@ import requests
 from lightning import LndNode
 
 from l402_api_chain import L402APIChain
-from langchain.llms import OpenAI
+from langchain_openai import OpenAI
 
 # Initialize LndNode
 lnd_node = LndNode(
