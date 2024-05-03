@@ -2,7 +2,7 @@ from langchain.agents.agent_toolkits.base import BaseToolkit
 from langchain.tools import BaseTool, tool
 
 from protos import lightning_pb2 as ln
-
+from langchain.chains import APIChain
 from lightning import LndNode
 
 from typing import List
@@ -183,7 +183,7 @@ class LndTools(BaseToolkit):
         tools = []
 
         for attribute_name in dir(self):
-            if attribute_name.endswith('_tool'):
+            if attribute_name.endswith("_tool"):
                 attribute = getattr(self, attribute_name)
 
                 if attribute is None:
