@@ -11,7 +11,6 @@ from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain.schema.runnable import RunnableMap
 from dotenv import dotenv_values
 
-
 config = dotenv_values(".env.shared")
 
 
@@ -32,10 +31,10 @@ class LLMUtils:
         )
         return api_chain
 
-    def get_memes_api_chain(self) -> L402APIChain:
+    def get_target_api_chain(self) -> L402APIChain:
 
-        memes_host = config.get("MEMES_HOST", "unknown_host")
-        API_DOCS = f"""BASE URL: {memes_host}
+        target_host = config.get("TARGET_HOST", "unknown_host")
+        API_DOCS = f"""BASE URL: {target_host}
       
         API Documentation
         The API endpoint /quote/ can be used to fetch inspirational quotes. Currenttly 5 quotes are availalble 1 through 5. 
@@ -46,19 +45,19 @@ class LLMUtils:
         Response:
         The response from the /quote/ endpoint is text. 
         """
-        memes_api_chain = self.api_chain_factory(api_docs=API_DOCS, api_host=memes_host)
-        return memes_api_chain
+        target_api_chain = self.api_chain_factory(
+            api_docs=API_DOCS, api_host=target_host
+        )
+        return target_api_chain
 
-    def get_memes_api_tool(self):
-        name = config.get("MEMES_API_TOOL_NAME", "Default api tool name")
-        description = config.get(
-            "MEMES_API_TOOL_DESCRIPTION", "Default api tool description"
+    def get_target_api_tool(self):
+        name = config.get("API_TOOL_NAME", "Default api tool name")
+        description = config.get("API_TOOL_DESCRIPTION", "Default api tool description")
+        target_api_chain = self.get_target_api_chain()
+        target_api_tool = api_tools.api_tool_factory(
+            api_chain=target_api_chain, name=name, description=description
         )
-        memes_api_chain = self.get_memes_api_chain()
-        memes_api_tool = api_tools.api_tool_factory(
-            api_chain=memes_api_chain, name=name, description=description
-        )
-        return memes_api_tool
+        return target_api_tool
 
     def _get_agent_executor(self, tools):
         prompt = hub.pull("hwchase17/structured-chat-agent")
@@ -86,7 +85,7 @@ class LLMUtils:
     def get_entry_point_v2(self):
         prompt = PromptTemplate.from_template(
             """If the input is about payments, balance, general info of specific  Lighting node, respond with `LND`. If the input is about general info of Lighting node technology, Bitcoin or blockchain in general, respond with `BLOCKCHAIN`.
-          If the input is about  quotes or memes, respond with `MEMES`. If the input is about the functionality if this tool or how this tool may help user, respond with `FAQ`. Otherwise, respond `OTHER`
+          If the input is about  retreaving API data, respond with `API`. If the input is about the functionality if this tool or how this tool may help user, respond with `FAQ`. Otherwise, respond `OTHER`
         
         Question: {question}"""
         )
@@ -100,9 +99,9 @@ class LLMUtils:
             | ChatOpenAI()
             | StrOutputParser()
         )
-        memes_host = config.get("MEMES_HOST", "missed")
+        target_host = config.get("TARGET_HOST", "missed")
 
-        faq_str = f"""You are a tool designed to help users communicate with Lighting Network that is on top of the bitcoin blockchain. Also you are able to communicate with some websites API. One of them is: `{memes_host}`. On this website you can find memes. You can also find quotes and other information. Respond with information about your features.
+        faq_str = f"""You are a tool designed to help users communicate with Lighting Network that is on top of the bitcoin blockchain. Also you are able to communicate with some websites API. One of them is: `{target_host}`. On this website you can find API data and services. You can also find other information. Respond with information about your features.
         """
         faq_llm_chain = (
             PromptTemplate.from_template(
@@ -127,7 +126,7 @@ class LLMUtils:
 
         router_chain = prompt | ChatOpenAI() | StrOutputParser()
 
-        memes_api_chain = self.get_memes_api_chain()
+        target_api_chain = self.get_target_api_chain()
         agent_executor = self.get_lnd_agent_executor()
 
         # Add the routing logic - use the action key to route
@@ -140,8 +139,8 @@ class LLMUtils:
                 return faq_llm_chain
             elif output["action"] == "BLOCKCHAIN":
                 return blockchain_llm_chain
-            elif output["action"] == "MEMES":
-                return memes_api_chain
+            elif output["action"] == "API":
+                return target_api_chain
             else:
                 raise ValueError
 
