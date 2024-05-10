@@ -18,9 +18,5 @@ llm_utils = LLMUtils(lnd_node=lnd_node)
 target_api_tool = llm_utils.get_target_api_tool()
 agent_executor = llm_utils.get_entry_point(additional_tools=[target_api_tool])
 
-# Invoke with query related to the api
-# api_output = agent_executor.invoke({"input": "Purchase quote #3"})
-# Invoke with query related to lnd node
-lnd_output = agent_executor.invoke({"input": "How many open channels do I have?"})
-# print(f"API resp:\n`{api_output['output']}`")
-# print(f"LND resp:\n`{lnd_output['output']}`")
+# Provide instructons to the AI agent here.
+agent_executor.invoke({"input": "How many channels does my node have open?"})

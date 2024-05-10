@@ -34,16 +34,16 @@ class LLMUtils:
     def get_target_api_chain(self) -> L402APIChain:
 
         target_host = config.get("TARGET_HOST", "unknown_host")
+
+        # Add the specifics of the API to be worked with here
         API_DOCS = f"""BASE URL: {target_host}
       
-        API Documentation
-        The API endpoint /quote/ can be used to fetch inspirational quotes. Currenttly 5 quotes are availalble 1 through 5. 
+        API Documentation 
       
         Request:
-        The number of the meme or quote needs to be included in the URL, example /quote/2. 
       
         Response:
-        The response from the /quote/ endpoint is text. 
+       
         """
         target_api_chain = self.api_chain_factory(
             api_docs=API_DOCS, api_host=target_host
@@ -152,26 +152,3 @@ class LLMUtils:
         )
 
         return chain
-
-
-if __name__ == "__main__":
-    lnd_node = LndNode(
-        cert_path="/home/runner/L402-LangChainBitcoin-Bitcoind-LND/tls.cert",
-        macaroon_path="/home/runner/L402-LangChainBitcoin-Bitcoind-LND/admin.macaroon",
-        host="lang-chain-bitcoin-testing.t.voltageapp.io",
-        port=10009,
-    )
-    llm_utils = LLMUtils(lnd_node=lnd_node)
-    entry_point = llm_utils.get_entry_point_v2()
-    result = entry_point.invoke(
-        {"question": "How many channels does my node have open?"}
-    )
-    print(f"LND result: {result}")
-
-    result = entry_point.invoke("How can you help me?")
-    print(f"\nFAQ result: {result}")
-
-    result = entry_point.invoke(
-        {"question": "Purchase quote #2"}
-    )  # Will fail with an error: `ValueError: Missing some input keys: {'question'}`
-    print(f"\nQuote result: {result}")
